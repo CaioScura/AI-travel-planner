@@ -1,26 +1,46 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@theme {
+  /* Cores do Google Maps */
+  --color-gmap-blue: #1a73e8;
+  --color-gmap-blue-dark: #1557b0;
+  --color-gmap-red: #ea4335;
+  --color-gmap-green: #188038;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  /* Texto */
+  --color-ink: #1f1f1f;
+  --color-ink-soft: #5f6368;
+  --color-ink-faint: #80868b;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* Animações */
+  --animate-route-draw: route-draw 3.2s cubic-bezier(0.65, 0, 0.35, 1) 0.4s both;
+  --animate-pin-drop: pin-drop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  --animate-pulse-ring: pulse-ring 2.4s ease-out infinite;
+
+  @keyframes route-draw {
+    from { stroke-dashoffset: 1; }
+    to { stroke-dashoffset: 0; }
+  }
+  @keyframes pin-drop {
+    0% { opacity: 0; transform: translateY(-24px) scale(0.6); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes pulse-ring {
+    0% { opacity: 0.55; transform: scale(1); }
+    100% { opacity: 0; transform: scale(3.2); }
   }
 }
 
+@utility glass {
+  background: rgb(255 255 255 / 0.55);
+  backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgb(255 255 255 / 0.7);
+  box-shadow:
+    0 1px 0 0 rgb(255 255 255 / 0.9) inset,
+    0 10px 40px -12px rgb(60 64 67 / 0.25);
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: #f1f3f4;
+  color: var(--color-ink);
 }
