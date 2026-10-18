@@ -31,6 +31,7 @@
   }
 }
 
+/* classe para efeito de vidro com blur */
 @utility glass {
   background: rgb(255 255 255 / 0.55);
   backdrop-filter: blur(24px) saturate(180%);
@@ -38,6 +39,32 @@
   box-shadow:
     0 1px 0 0 rgb(255 255 255 / 0.9) inset,
     0 10px 40px -12px rgb(60 64 67 / 0.25);
+}
+
+/* Mais opaco — para painéis com bastante texto */
+@utility glass-strong {
+  background: rgb(255 255 255 / 0.78);
+  backdrop-filter: blur(32px) saturate(190%);
+  border: 1px solid rgb(255 255 255 / 0.85);
+  box-shadow:
+    0 1px 0 0 rgb(255 255 255 / 1) inset,
+    0 18px 50px -16px rgb(60 64 67 / 0.3);
+}
+
+/* Vidro escuro — destaques */
+@utility glass-dark {
+  background: rgb(32 33 36 / 0.72);
+  backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid rgb(255 255 255 / 0.12);
+  box-shadow: 0 1px 0 0 rgb(255 255 255 / 0.15) inset;
+}
+
+
+/* Navegador sem suporte a blur → vidro quase opaco para manter a leitura */
+@supports not (backdrop-filter: blur(1px)) {
+  .glass { background: rgb(255 255 255 / 0.9); }
+  .glass-strong { background: rgb(255 255 255 / 0.95); }
+  .glass-dark { background: rgb(32 33 36 / 0.95); }
 }
 
 body {

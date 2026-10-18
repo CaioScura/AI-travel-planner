@@ -85,9 +85,9 @@ export function MapBackground(){
                     </g>
 
                     {/* 6. Rótulos + pontos de interesse */}
-                    <text x="290" y="858" fill="#4a7fae" fontSize="15" fontStyle="italic" letterSpacing="2">Rio Tejo</text>
+                    <text x="290" y="858" fill="#4a7fae" fontSize="15" fontStyle="italic" letterSpacing="2">Rio Chespirito</text>
                     <text x="1350" y="480" fill="#4a7fae" fontSize="16" fontStyle="italic" letterSpacing="3">Oceano Atlântico</text>
-                    <text x="905" y="200" fill="#188038" fontSize="13" fontWeight="500" style={labelHalo}>Parque Eduardo VII</text>
+                    <text x="905" y="200" fill="#188038" fontSize="13" fontWeight="500" style={labelHalo}>Parque Caio Scura</text>
                     <text x="150" y="975" fill="#5f6368" fontSize="12" fontWeight="600" letterSpacing="2.5" style={labelHalo}>CENTRO HISTÓRICO</text>
                     <text x="60" y="585" fill="#5f6368" fontSize="12" style={labelHalo}>Av. da Liberdade</text>
 
