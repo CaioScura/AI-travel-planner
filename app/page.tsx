@@ -3,6 +3,7 @@ import { MapControls } from "@/app/components/map/MapControls";
 import { NavBar } from "@/app/components/landing/NavBar";
 import { GlassPanel } from "@/app/components/ui/GlassPanel";
 import { ButtonLink } from "@/app/components/ui/Button";
+import { Hero } from "./components/landing/Hero";
 
 
 export default function Home() {
@@ -12,17 +13,8 @@ export default function Home() {
       <MapControls />
       <NavBar />
 
-      <main className="grid min-h-screen place-items-center gap-4 p-5">
-        <div className="flex flex-wrap justify-center gap-4">
-          <GlassPanel className="p-6">glass</GlassPanel>
-          <GlassPanel variant="strong" className="p-6">glass-strong</GlassPanel>
-          <GlassPanel variant="dark" className="p-6">glass-dark</GlassPanel>
-        </div>
-
-        <div className="flex gap-3">
-          <ButtonLink href="#">Primário</ButtonLink>
-          <ButtonLink href="#" variant="glass">Vidro</ButtonLink>
-        </div>
+      <main>
+        <Hero/>
       </main>
       
       {/* <main className="grid min-h-screen place-items-center">
