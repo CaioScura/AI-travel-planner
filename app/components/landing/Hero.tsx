@@ -19,7 +19,7 @@ export function Hero(){
                 </h1>
 
                 <p className="mt-6 max-w-[34rem] text-lg leading-relaxed text-ink-soft">
-                Conte destino, datas e o que você curte. A IA monta o roteiro dia a dia,
+                Nos conte o destino, datas e o que você curte. Montamos o roteiro do seu dia a dia,
                 direto no mapa — com rotas, horários e quanto vai custar.
                 </p>
 
