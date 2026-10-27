@@ -13,13 +13,13 @@ export function NavBar(){
 
                 <ul className="hidden items-center gap-1 md:flex">
                     {navLinks.map((l) => (
-                        <li key={l.href}>
-                        <a
-                            href={l.href}
+                        <li key={l.panel}>
+                        <button
+                            popoverTarget={l.panel}
                             className="rounded-full px-4 py-2 text-[15px] text-ink-soft transition-colors hover:bg-white/60 hover:text-ink"
                         >
                             {l.label}
-                        </a>
+                        </button>
                         </li>
                     ))}
                 </ul>

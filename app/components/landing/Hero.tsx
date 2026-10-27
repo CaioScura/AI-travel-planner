@@ -1,5 +1,5 @@
-import { Sparkles } from "lucide-react";
-import { ButtonLink } from "@/app/components/ui/Button";
+import { CirclePlay, Sparkles } from "lucide-react";
+import { Button, ButtonLink } from "@/app/components/ui/Button";
 import { PromptCard } from "./PromptCard";
 
 export function Hero(){
@@ -24,9 +24,21 @@ export function Hero(){
                 </p>
 
                 <div className="mt-8 flex flex-wrap gap-3">
-                <ButtonLink href="#lista" size="lg">Planejar minha viagem</ButtonLink>
-                <ButtonLink href="#exemplo" variant="glass" size="lg">Ver um exemplo</ButtonLink>
+                    <ButtonLink href="#" size="lg">
+                        Planejar minha viagem
+                    </ButtonLink>
+                    <Button popoverTarget="exemplo" variant="glass" size="lg">
+                        <CirclePlay className="size-5 text-gmap-blue" />
+                        Ver um exemplo
+                    </Button>
                 </div>
+
+                    <p className="mt-5 text-sm text-ink-faint">
+                    Grátis durante o beta ·{" "}
+                    <button popoverTarget="como-funciona" className="underline decoration-ink-faint/40 underline-offset-4 hover:text-ink">
+                        como funciona?
+                    </button>
+                    </p>
             </div>
 
             {/* Coluna da direita: card animado */}

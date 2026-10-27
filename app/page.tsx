@@ -1,9 +1,9 @@
 import { MapBackground } from "./components/map/MapBackground";
 import { MapControls } from "@/app/components/map/MapControls";
 import { NavBar } from "@/app/components/landing/NavBar";
-import { GlassPanel } from "@/app/components/ui/GlassPanel";
-import { ButtonLink } from "@/app/components/ui/Button";
 import { Hero } from "./components/landing/Hero";
+import { HowItWorksPanel } from "./components/landing/HowItWorksPanel";
+import { ExamplePanel } from "./components/landing/ExamplePanel";
 
 
 export default function Home() {
@@ -16,6 +16,9 @@ export default function Home() {
       <main>
         <Hero/>
       </main>
+
+      <HowItWorksPanel />
+      <ExamplePanel />
       
       {/* <main className="grid min-h-screen place-items-center">
         <div className="glass rounded-[28px] p-8">
