@@ -29,7 +29,7 @@ export function NavBar(){
                         Entrar
                     </a>
                     
-                    <ButtonLink href="#lista" className="h-10 px-4 text-sm">
+                    <ButtonLink href="/planejar" className="h-10 px-4 text-sm">
                         Começar grátis
                     </ButtonLink>
 

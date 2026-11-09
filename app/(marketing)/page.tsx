@@ -1,9 +1,9 @@
-import { MapBackground } from "./components/map/MapBackground";
+import { MapBackground } from "@/app/components/map/MapBackground";
 import { MapControls } from "@/app/components/map/MapControls";
 import { NavBar } from "@/app/components/landing/NavBar";
-import { Hero } from "./components/landing/Hero";
-import { HowItWorksPanel } from "./components/landing/HowItWorksPanel";
-import { ExamplePanel } from "./components/landing/ExamplePanel";
+import { Hero } from "@/app/components/landing/Hero";
+import { HowItWorksPanel } from "@/app/components/landing/HowItWorksPanel";
+import { ExamplePanel } from "@/app/components/landing/ExamplePanel";
 
 
 export default function Home() {
