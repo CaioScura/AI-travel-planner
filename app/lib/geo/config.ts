@@ -4,9 +4,9 @@
 // Estilos gratuitos do OpenFreeMap (sem chave): "positron" | "liberty" | "bright"
 export const MAP_STYLE_URL = "https://tiles.openfreemap.org/styles/positron";
 
-/** Visão inicial do mapa (Lisboa, por enquanto) */
+/** Visão inicial do mapa (tokyo, por enquanto) */
 export const INITIAL_VIEW = {
-  longitude: -9.1393,
-  latitude: 38.7223,
-  zoom: 12.5,
+  longitude: 139.7671,
+  latitude: 35.6812,
+  zoom: 11.5,
 };
