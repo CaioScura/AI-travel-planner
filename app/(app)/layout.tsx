@@ -1,5 +1,6 @@
 import { TripMap } from "@/app/components/map/TripMap";
 import { AppHeader } from "@/app/components/planner/AppHeader";
+import { PlannerProvider } from "@/app/components/planner/PlannerProvider";
 
 /**
  * Casca de todas as telas do app (/planejar, /roteiro...).
@@ -8,10 +9,12 @@ import { AppHeader } from "@/app/components/planner/AppHeader";
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <TripMap />
-      <AppHeader />
-      {/* pointer-events-none: deixa o mouse "atravessar" até o mapa onde não há painel */}
-      <div className="pointer-events-none relative z-10 h-svh">{children}</div>
+      <PlannerProvider>
+        <TripMap />
+        <AppHeader />
+        {/* pointer-events-none: deixa o mouse "atravessar" até o mapa onde não há painel */}
+        <div className="pointer-events-none relative z-10 h-svh">{children}</div>
+      </PlannerProvider>  
     </>
   );
 }
