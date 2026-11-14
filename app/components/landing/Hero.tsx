@@ -24,7 +24,7 @@ export function Hero(){
                 </p>
 
                 <div className="mt-8 flex flex-wrap gap-3">
-                    <ButtonLink href="#" size="lg">
+                    <ButtonLink href="/planejar" size="lg">
                         Planejar minha viagem
                     </ButtonLink>
                     <Button popoverTarget="exemplo" variant="glass" size="lg">

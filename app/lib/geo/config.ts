@@ -1,14 +1,15 @@
-/**
- * Configuração do provedor de mapa.
- * Se um dia trocar de provedor (MapTiler, Stadia, Google...), é aqui que muda.
- */
+
+//podendo alterar o mapa(google, maptiler, etc)
 
 // Estilos gratuitos do OpenFreeMap (sem chave): "positron" | "liberty" | "bright"
 export const MAP_STYLE_URL = "https://tiles.openfreemap.org/styles/positron";
 
-/** Visão inicial do mapa (Lisboa, por enquanto) */
+/** Visão inicial do mapa */
 export const INITIAL_VIEW = {
-  longitude: -9.1393,
-  latitude: 38.7223,
-  zoom: 12.5,
+  longitude: 0,
+  latitude: 20,
+  zoom: 1.6,
 };
+
+//zoom para centralizar o mapa no local do usuário
+export const USER_LOCATION_ZOOM = 11;
