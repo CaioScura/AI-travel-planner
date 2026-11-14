@@ -32,13 +32,6 @@ export function Hero(){
                         Ver um exemplo
                     </Button>
                 </div>
-
-                    <p className="mt-5 text-sm text-ink-faint">
-                    Grátis durante o beta ·{" "}
-                    <button popoverTarget="como-funciona" className="underline decoration-ink-faint/40 underline-offset-4 hover:text-ink">
-                        como funciona?
-                    </button>
-                    </p>
             </div>
 
             {/* Coluna da direita: card animado */}
