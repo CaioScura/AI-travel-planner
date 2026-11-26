@@ -1,12 +1,11 @@
 import type { LngLat, Place } from "@/app/lib/trip/types";
 
 /**
- * Geocodificação com o Photon (OpenStreetMap) — grátis e sem chave.
+ * Geocodificação com o Photon (OpenStreetMap)
  * Este arquivo roda só no SERVIDOR (é chamado pela rota /api/geocode/...).
- * Trocar de provedor no futuro = mexer só aqui.
  */
-
 const PHOTON_URL = process.env.GEOCODER_URL ?? "https://photon.komoot.io";
+
 
 /** resposta do photon */
 type PhotonFeature = {
@@ -17,7 +16,8 @@ type PhotonFeature = {
     county?: string;
     state?: string;
     country?: string;
-    countrycode?: string; // "JP"
+    countrycode?: string;
+    type?: string; //cidade, estado, pais
   };
 };
 
@@ -38,6 +38,7 @@ async function photon(path: string, params: Record<string, string | string[]>) {
   const data: { features: PhotonFeature[] } = await res.json();
   return data.features;
 }
+
 
 /** usando os nomes de país do próprio JavaScript */
 function countryName(code?: string, fallback?: string) {
@@ -63,9 +64,6 @@ function toPlace(feature: PhotonFeature, isCity: boolean): Place {
 
 /**
  * Ponto no mapa → cidade
- * 1º procura a cidade mais próxima (até 30 km)
- * se não houver aceita o que existir no ponto
- * Retorna null se não houver nada
  */
 export async function reverseGeocode([lng, lat]: LngLat): Promise<Place | null> {
   const base = { lon: String(lng), lat: String(lat), lang: "en", limit: "1" };
@@ -75,4 +73,46 @@ export async function reverseGeocode([lng, lat]: LngLat): Promise<Place | null> 
 
   const [anything] = await photon("/reverse", base);
   return anything ? toPlace(anything, false) : null;
+}
+
+
+
+/** Converte um resultado da busca: cidade, estado ou país */
+function toSearchPlace(feature: PhotonFeature): Place {
+  const p = feature.properties;
+
+  // buscou um país
+  if (p.type === "country") {
+    return {
+      name: countryName(p.countrycode, p.name) ?? "País sem nome",
+      coordinates: feature.geometry.coordinates,
+    };
+  }
+
+  return {
+    name: p.name ?? "Lugar sem nome",
+    region: p.state !== p.name ? p.state : undefined, // evita "Tóquio, Tóquio"
+    country: countryName(p.countrycode, p.country),
+    coordinates: feature.geometry.coordinates,
+  };
+}
+
+
+//lista lugares na cidade buscada
+export async function searchPlaces(query: string): Promise<Place[]> {
+  const features = await photon("/api", {
+    q: query,
+    lang: "en",
+    limit: "6",
+    layer: ["city", "state", "country"],
+  });
+
+  // o Photon às vezes repete o mesmo lugar: removemos duplicados
+  const seen = new Set<string>();
+  return features.map(toSearchPlace).filter((place) => {
+    const key = `${place.name}|${place.region}|${place.country}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }

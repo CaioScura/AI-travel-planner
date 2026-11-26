@@ -34,6 +34,7 @@ export type Trip = {
 //lugar escolhido no mapa ou na busca
 export type Place = {
   name: string;
+  region?: string;
   country?: string;
   coordinates: LngLat;
 };
