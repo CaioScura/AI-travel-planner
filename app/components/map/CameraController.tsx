@@ -3,8 +3,9 @@
 import { useEffect } from "react";
 import { useMap } from "react-map-gl/maplibre";
 import { getBounds } from "@/app/lib/geo/bounds";
-import { INITIAL_VIEW, USER_LOCATION_ZOOM } from "@/app/lib/geo/config";
+import { DESTINATION_ZOOM, INITIAL_VIEW, USER_LOCATION_ZOOM } from "@/app/lib/geo/config";
 import { usePlanner } from "@/app/components/planner/PlannerProvider";
+
 
 
 //margem de enquadramento do mapa
@@ -19,7 +20,7 @@ function getMapPadding() {
 //move a camera do mapa para enquadrar o roteiro, a localizacao
 export function CameraController() {
   const { current: map } = useMap();
-  const { location, trip } = usePlanner();
+    const { location, trip, destination } = usePlanner();
 
   const origin = location.status === "found" ? location.coordinates : null;
 
@@ -36,15 +37,21 @@ export function CameraController() {
       return;
     }
 
-    // 2. Sem roteiro, mas sabemos onde o usuário está → voa até ele
+    // 2. Escolheu um destino → voa até ele
+    if (destination) {
+      map.flyTo({ center: destination.coordinates, zoom: DESTINATION_ZOOM, padding, duration: 2000 });
+      return;
+    }
+
+    // 3. Sem roteiro, mas sabemos onde o usuário está → voa até ele
     if (origin) {
       map.flyTo({ center: origin, zoom: USER_LOCATION_ZOOM, padding, duration: 2000 });
       return;
     }
 
-    // 3. Nada disso → visão do mundo
+    // 4. Nada disso → visão do mundo
     map.flyTo({ center: [INITIAL_VIEW.longitude, INITIAL_VIEW.latitude], zoom: INITIAL_VIEW.zoom, duration: 1200 });
-  }, [map, origin, trip]);
+  }, [map, origin, trip, destination]);
 
   return null;
 }
