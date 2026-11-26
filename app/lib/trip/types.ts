@@ -38,3 +38,22 @@ export type Place = {
   country?: string;
   coordinates: LngLat;
 };
+
+
+
+
+//interesse que o usuario pode escolher
+export type Interest = "food" | "culture" | "nature" | "nightlife" | "shopping" | "history";
+
+//ritmo da viagem, influencia qtde de lugares durante a viagem
+export type Pace = "relaxed" | "balanced" | "intense";
+
+//pedido da viagem
+export type TripRequest = {
+  destination: Place;
+  origin?: LngLat; //localização do usuario, se ele permitir compartilhar
+  days: number;
+  interests: Interest[];
+  pace: Pace;
+  notes: string; //conte o que você quer fazer
+};
