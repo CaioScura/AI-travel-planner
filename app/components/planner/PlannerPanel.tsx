@@ -1,6 +1,7 @@
 "use client";
 
-import { ArrowLeft, LoaderCircle, LocateFixed, MapPin, MapPinOff, MousePointerClick, Search, Sparkles } from "lucide-react";
+import { ArrowLeft, LoaderCircle, LocateFixed, MapPin, MapPinOff, MousePointerClick, Sparkles } from "lucide-react";
+import { DestinationSearch } from "./DestinationSearch";
 import { GlassPanel } from "@/app/components/ui/GlassPanel";
 import { Button } from "@/app/components/ui/Button";
 import { sampleTrip } from "@/app/lib/trip/sample-trip";
@@ -32,7 +33,7 @@ function ChooseDestination() {
       <p className="mt-1 text-[15px] text-ink-soft">Escolha o destino e a gente monta o roteiro.</p>
 
       {/* Busca: ganha vida na etapa 11 */}
-      <label className="mt-4 flex h-12 items-center gap-3 rounded-full bg-white px-4 shadow-[0_1px_3px_rgb(60_64_67/0.15)]">
+      {/* <label className="mt-4 flex h-12 items-center gap-3 rounded-full bg-white px-4 shadow-[0_1px_3px_rgb(60_64_67/0.15)]">
         <Search className="size-5 shrink-0 text-ink-faint" />
         <input
           disabled
@@ -40,10 +41,13 @@ function ChooseDestination() {
           className="min-w-0 flex-1 bg-transparent text-[15px] outline-none placeholder:text-ink-faint disabled:cursor-not-allowed"
         />
         <span className="shrink-0 rounded-full bg-black/[0.05] px-2 py-0.5 text-[11px] whitespace-nowrap text-ink-soft">em breve</span>
-      </label>
+      </label> */}
 
+      <DestinationSearch />
       
       <DestinationStatus />
+
+      
 
       <LocationStatus />
 

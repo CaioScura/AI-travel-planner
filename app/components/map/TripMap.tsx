@@ -1,10 +1,14 @@
 "use client";
 
+import { useState } from "react";
+
 import Map, { Marker, type MapLayerMouseEvent } from "react-map-gl/maplibre";
 import { setWorkerUrl } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { INITIAL_VIEW } from "@/app/lib/geo/config";
 import { usePlanner } from "@/app/components/planner/PlannerProvider";
+import type { Place } from "@/app/lib/trip/types";
+
 import { useMapStyle } from "./useMapStyle";
 import { CameraController } from "./CameraController";
 import { UserLocationDot } from "./UserLocationDot";
@@ -27,6 +31,12 @@ export function TripMap() {
   const { location, trip, destination, setDestination } = usePlanner();
   const picker = useDestinationPicker();
 
+  
+  // Qual era o destino quando o usuário clicou no mapa.
+  const [pickedWith, setPickedWith] = useState<Place | null>(null);
+  const showCard = picker.candidate && !trip && pickedWith === destination;
+
+
   // Por enquanto, sempre o Dia 1 do roteiro (a troca de dia vem depois)
   const day = trip?.days[0];
 
@@ -41,7 +51,9 @@ export function TripMap() {
     );
     if (clickedOnMarker) return;
 
-    const { lng, lat } = event.lngLat.wrap(); // wrap(): mantém a longitude entre -180 e 180
+    const { lng, lat } = event.lngLat.wrap();
+
+    setPickedWith(destination);
     picker.pick([lng, lat]);
   }
 
@@ -79,7 +91,7 @@ export function TripMap() {
         )}
 
         {/* Card do ponto clicado (enquanto o usuário decide) */}
-        {picker.candidate && !trip && (
+        {showCard && picker.candidate && (
           <Marker
             longitude={picker.candidate.coordinates[0]}
             latitude={picker.candidate.coordinates[1]}
