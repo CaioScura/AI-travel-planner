@@ -9,28 +9,31 @@ import { usePlanner } from "@/app/components/planner/PlannerProvider";
 
 
 //margem de enquadramento do mapa
-function getMapPadding() {
+//no celular, com roteiro aberto, o painel de baixo fica mais alto (até 55% da tela)
+function getMapPadding(hasTrip: boolean) {
   const isDesktop = window.matchMedia("(min-width: 768px)").matches;
-  return isDesktop
-    ? { top: 110, bottom: 70, left: 440, right: 90 }
-    : { top: 90, bottom: 260, left: 40, right: 40 };
+  if (isDesktop) return { top: 110, bottom: 70, left: 440, right: 90 };
+
+  const bottom = hasTrip ? Math.round(window.innerHeight * 0.55) + 24 : 260;
+  return { top: 90, bottom, left: 40, right: 40 };
 }
 
 
 //move a camera do mapa para enquadrar o roteiro, a localizacao
 export function CameraController() {
   const { current: map } = useMap();
-    const { location, trip, destination } = usePlanner();
+  const { location, trip, destination, selectedDay } = usePlanner();
 
   const origin = location.status === "found" ? location.coordinates : null;
 
   useEffect(() => {
     if (!map) return;
-    const padding = getMapPadding();
+        const padding = getMapPadding(Boolean(trip));
 
-    // 1. Tem roteiro → enquadra as paradas do primeiro dia
+
+    // 1. Tem roteiro → enquadra as paradas do dia aberto no painel
     if (trip) {
-      const points = trip.days[0].activities.map((a) => a.coordinates);
+      const points = trip.days[selectedDay].activities.map((a) => a.coordinates);
       if (points.length > 0) {
         map.fitBounds(getBounds(points), { padding, duration: 1600 });
       }
@@ -51,7 +54,7 @@ export function CameraController() {
 
     // 4. Nada disso → visão do mundo
     map.flyTo({ center: [INITIAL_VIEW.longitude, INITIAL_VIEW.latitude], zoom: INITIAL_VIEW.zoom, duration: 1200 });
-  }, [map, origin, trip, destination]);
+  }, [map, origin, trip, destination, selectedDay]);
 
   return null;
 }

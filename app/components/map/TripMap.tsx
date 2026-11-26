@@ -28,7 +28,7 @@ setWorkerUrl("/maplibre-gl-worker.mjs");
 //nao recarrega ao trocar de pagina
 export function TripMap() {
   const mapStyle = useMapStyle();
-  const { location, trip, destination, setDestination } = usePlanner();
+  const { location, trip, destination, setDestination, selectedDay } = usePlanner();
   const picker = useDestinationPicker();
 
   
@@ -37,8 +37,8 @@ export function TripMap() {
   const showCard = picker.candidate && !trip && pickedWith === destination;
 
 
-  // Por enquanto, sempre o Dia 1 do roteiro (a troca de dia vem depois)
-  const day = trip?.days[0];
+  // O dia aberto no painel
+  const day = trip?.days[selectedDay];
 
 
   // Clique no mapa → identifica a cidade naquele ponto
