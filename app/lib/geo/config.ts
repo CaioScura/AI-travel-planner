@@ -1,10 +1,16 @@
 
 //podendo alterar o mapa(google, maptiler, etc)
 
-// Estilos gratuitos do OpenFreeMap (sem chave): "positron" | "liberty" | "bright"
+
+//estilos gratuitos do OpenFreeMap (sem chave): "positron" | "liberty" | "bright"
 export const MAP_STYLE_URL = "https://tiles.openfreemap.org/styles/positron";
 
-/** Visão inicial do mapa */
+
+/**zoom ao voar até o destino escolhido */
+export const DESTINATION_ZOOM = 11;
+
+
+/**visão inicial do mapa */
 export const INITIAL_VIEW = {
   longitude: 0,
   latitude: 20,
