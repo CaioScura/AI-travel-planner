@@ -29,6 +29,7 @@ export type Trip = {
   destination: string;
   title: string;
   days: TripDay[];
+  notFound?: string[];
 };
 
 //lugar escolhido no mapa ou na busca
