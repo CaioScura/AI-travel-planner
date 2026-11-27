@@ -1,31 +1,52 @@
 "use client";
 
-import { ArrowLeft, LoaderCircle, LocateFixed, MapPin, MapPinOff, MousePointerClick, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { ArrowRight, LoaderCircle, LocateFixed, MapPin, MapPinOff, MousePointerClick, Sparkles } from "lucide-react";
 import { DestinationSearch } from "./DestinationSearch";
+import { TripPreferences } from "./TripPreferences";
+import { TripView } from "./TripView";
+
 import { GlassPanel } from "@/app/components/ui/GlassPanel";
 import { Button } from "@/app/components/ui/Button";
+import { cn } from "@/app/lib/cn";
 import { sampleTrip } from "@/app/lib/trip/sample-trip";
 import { usePlanner } from "./PlannerProvider";
 
 
 //painel da tela de planejamento, que fica sobre o mapa, onde escolhe o destino  e o roteiro
 export function PlannerPanel() {
-  const { trip } = usePlanner();
+  const { trip, destination, setTrip } = usePlanner();
+
+  // Em qual passo o usuário está (o roteiro tem prioridade: se existe, mostra ele)
+  const [step, setStep] = useState<"destination" | "preferences">("destination");
+
+  let content;
+  if (trip) {
+    content = <TripView onBack={() => setTrip(null)} />;
+  } else if (step === "preferences" && destination) {
+    content = <TripPreferences onBack={() => setStep("destination")} />;
+  } else {
+    content = <ChooseDestination onContinue={() => setStep("preferences")} />;
+  }
 
   return (
     <GlassPanel
       variant="strong"
-      className="pointer-events-auto absolute inset-x-3 bottom-3 p-5 md:inset-x-auto md:top-20 md:bottom-auto md:left-4 md:w-[380px]"
+      className={cn(
+        "pointer-events-auto absolute inset-x-3 bottom-3 p-5 md:inset-x-auto md:top-20 md:bottom-auto md:left-4 md:w-[380px]",
+        // preferências e roteiro são longos: o painel rola por dentro
+        (trip || step === "preferences") && "max-h-[55svh] overflow-y-auto md:max-h-[calc(100svh-6.5rem)]",
+      )}
     >
-      {trip ? <TripSummary /> : <ChooseDestination />}
+      {content}
     </GlassPanel>
   );
 }
 
 
 //estado inicial, escsolher o destino de viagem
-function ChooseDestination() {
-  const { setTrip } = usePlanner();
+function ChooseDestination({ onContinue }: { onContinue: () => void }) {
+  const { destination, setTrip } = usePlanner();
 
   return (
     <div className="animate-fade-up">
@@ -52,10 +73,13 @@ function ChooseDestination() {
       <LocationStatus />
 
       <div className="mt-4 border-t border-black/[0.06] pt-4">
-        <Button variant="glass" className="w-full" onClick={() => setTrip(sampleTrip)}>
-          <Sparkles className="size-4 text-gmap-blue" />
-          Ver roteiro de exemplo (Tóquio)
-        </Button>
+          {/* com destino escolhido, segue para as preferências */}
+          {destination && (
+            <Button className="mt-4 w-full" onClick={onContinue}>
+              Continuar
+              <ArrowRight className="size-4" />
+            </Button>
+          )}
       </div>
     </div>
   );
@@ -130,34 +154,6 @@ function LocationStatus() {
         <button onClick={retryLocation} className="font-medium text-gmap-blue hover:underline">
           Tentar de novo
         </button>
-      </p>
-    </div>
-  );
-}
-
-
-//se tiver roteiro, mostra o resumo do roteiro e botão "nova viagem"
-function TripSummary() {
-  const { trip, setTrip } = usePlanner();
-  if (!trip) return null;
-
-  return (
-    <div className="animate-fade-up">
-      <button
-        onClick={() => setTrip(null)}
-        className="flex items-center gap-1.5 text-sm font-medium text-gmap-blue hover:underline"
-      >
-        <ArrowLeft className="size-4" />
-        Nova viagem
-      </button>
-
-      <h1 className="mt-3 text-xl font-semibold tracking-tight">{trip.title}</h1>
-      <p className="text-[15px] text-ink-soft">
-        {trip.destination} · {trip.days.length} dias
-      </p>
-
-      <p className="mt-3 text-sm text-ink-faint">
-        Mostrando o {trip.days[0].label}: {trip.days[0].title}.
       </p>
     </div>
   );
