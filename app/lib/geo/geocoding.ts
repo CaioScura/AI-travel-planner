@@ -116,3 +116,22 @@ export async function searchPlaces(query: string): Promise<Place[]> {
     return true;
   });
 }
+
+
+//acha um lugar específico perto do destino
+//bbox = quadrado de uns 110 km em volta do destino
+export async function findPlace(query: string, near: LngLat): Promise<LngLat | null> {
+  const [lng, lat] = near;
+  const box = 1; // graus para cada lado (~110 km)
+
+  const [first] = await photon("/api", {
+    q: query,
+    lang: "en",
+    limit: "1",
+    lon: String(lng),
+    lat: String(lat),
+    bbox: [lng - box, lat - box, lng + box, lat + box].join(","),
+  });
+
+  return first ? first.geometry.coordinates : null;
+}
