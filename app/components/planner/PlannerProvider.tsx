@@ -2,20 +2,28 @@
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { requestUserLocation, type UserLocation } from "@/app/lib/geo/user-location";
-import type { Place, Trip } from "@/app/lib/trip/types";
+import type { Place, Trip, TripRequest } from "@/app/lib/trip/types";
 
 
 //tudo que o mapa e o painel precisam comporatilhar
 type PlannerState = {
-  location: UserLocation; //localizacao do usuario
+  location: UserLocation;
   destination: Place | null; //onde o usuario vai
-  trip: Trip | null; //roteiroda viagem
-  selectedDay: number; // índice do dia aberto no painel (0 = Dia 1)
+  trip: Trip | null; //roteiro da viagem
+  selectedDay: number;
+
+  lastRequest: TripRequest | null; // o último pedido de roteiro
+  generating: boolean;
+  generateError: string | null;
+
 
   retryLocation: () => void;
   setDestination: (place: Place | null) => void;
   setTrip: (trip: Trip | null) => void;
   setSelectedDay: (index: number) => void;
+  generateTrip: (request: TripRequest) => Promise<void>;
+
+  
 };
 
 const PlannerContext = createContext<PlannerState | null>(null);
@@ -27,6 +35,11 @@ export function PlannerProvider({ children }: { children: ReactNode }) {
   const [destination, setDestination] = useState<Place | null>(null);
   const [trip, setTripState] = useState<Trip | null>(null);
   const [selectedDay, setSelectedDay] = useState(0);
+
+  const [lastRequest, setLastRequest] = useState<TripRequest | null>(null);
+  const [generating, setGenerating] = useState(false);
+  const [generateError, setGenerateError] = useState<string | null>(null);
+
 
   // Ao abrir a tela, pede a localização uma vez
   useEffect(() => {
@@ -40,10 +53,36 @@ export function PlannerProvider({ children }: { children: ReactNode }) {
   }, []);
 
 
-  // Roteiro novo (ou nenhum) → sempre começa pelo Dia 1
+  // Roteiro novo
   function setTrip(newTrip: Trip | null) {
     setTripState(newTrip);
     setSelectedDay(0);
+  }
+
+
+  //pede um roteiro ao servidor (que chama a IA)
+  async function generateTrip(request: TripRequest) {
+    setLastRequest(request);
+    setGenerating(true);
+    setGenerateError(null);
+
+    try {
+      const res = await fetch("/api/trips/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(request),
+      });
+      const data = await res.json().catch(() => null);
+
+      // a rota sempre devolve { error: "mensagem amigável" } quando dá errado
+      if (!res.ok) throw new Error(data?.error ?? "Não conseguimos gerar o roteiro.");
+
+      setTrip(data as Trip);
+    } catch (error) {
+      setGenerateError(error instanceof Error ? error.message : "Não conseguimos gerar o roteiro.");
+    } finally {
+      setGenerating(false);
+    }
   }
 
 
@@ -60,10 +99,14 @@ export function PlannerProvider({ children }: { children: ReactNode }) {
         destination,
         trip,
         selectedDay,
+        lastRequest,
+        generating,
+        generateError,
         retryLocation,
         setDestination,
         setTrip,
         setSelectedDay,
+        generateTrip,
       }}
     >
       {children}
