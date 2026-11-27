@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Info } from "lucide-react";
+import { ArrowLeft, Info, LoaderCircle, MapPinOff, RefreshCw } from "lucide-react";
 import { cn } from "@/app/lib/cn";
 import { categories } from "@/app/lib/trip/categories";
 import { sampleTrip } from "@/app/lib/trip/sample-trip";
@@ -9,7 +9,7 @@ import { usePlanner } from "./PlannerProvider";
 
 //ROTEIRO, abas de dia e lista de paradas
 export function TripView({ onBack }: { onBack: () => void }) {
-  const { trip, destination, selectedDay, setSelectedDay } = usePlanner();
+  const { trip, selectedDay, setSelectedDay, lastRequest, generating, generateError, generateTrip } = usePlanner();
   if (!trip) return null;
 
   const day = trip.days[selectedDay];
@@ -30,14 +30,37 @@ export function TripView({ onBack }: { onBack: () => void }) {
         {trip.destination} · {trip.days.length} dias
       </p>
 
-      {/* aviso enquanto a IA não existe */}
+
+      {/* roteiro de exemplo */}
       {isSample && (
         <p className="mt-3 flex items-start gap-2 rounded-2xl bg-gmap-blue/[0.07] p-3 text-[13px] text-ink-soft">
           <Info className="mt-0.5 size-4 shrink-0 text-gmap-blue" />
-          Roteiro de exemplo.
-          {destination ? ` Na próxima etapa, a IA monta o de ${destination.name}.` : ""}
+          Roteiro de exemplo. Escolha um destino para a IA montar o seu.
         </p>
       )}
+
+      {/* lugares que a IA sugeriu mas não achamos no mapa */}
+      {trip.notFound && (
+        <p className="mt-3 flex items-start gap-2 rounded-2xl bg-amber-500/10 p-3 text-[13px] text-ink-soft">
+          <MapPinOff className="mt-0.5 size-4 shrink-0 text-amber-600" />
+          Não achamos no mapa: {trip.notFound.join(", ")}.
+        </p>
+      )}
+
+      {/* gerar outra versão com as mesmas escolhas */}
+      {lastRequest && !isSample && (
+        <button
+          onClick={() => generateTrip(lastRequest)}
+          disabled={generating}
+          className="mt-3 flex items-center gap-1.5 text-sm font-medium text-gmap-blue hover:underline disabled:opacity-60"
+        >
+          {generating ? <LoaderCircle className="size-4 animate-spin" /> : <RefreshCw className="size-4" />}
+          {generating ? "Gerando outra versão…" : "Gerar de novo"}
+        </button>
+      )}
+      {generateError && <p className="mt-2 text-sm text-gmap-red">{generateError}</p>}
+
+
 
       {/* Abas de dia (rolam na horizontal quando há muitos dias) */}
       <div role="tablist" aria-label="Dias do roteiro" className="-mx-1 mt-4 flex gap-1.5 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">

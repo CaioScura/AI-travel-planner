@@ -5,18 +5,18 @@ import { ArrowLeft, LoaderCircle, MapPin, Minus, Plus, WandSparkles } from "luci
 import { Button } from "@/app/components/ui/Button";
 import { cn } from "@/app/lib/cn";
 import { INTERESTS, MAX_DAYS, MAX_NOTES, MIN_DAYS, PACES } from "@/app/lib/trip/preferences";
-import type { Interest, Pace, Trip, TripRequest } from "@/app/lib/trip/types";
+import type { Interest, Pace, TripRequest } from "@/app/lib/trip/types";
 import { usePlanner } from "./PlannerProvider";
 
 /** Passo 2: "Como vai ser a viagem?" */
 export function TripPreferences({ onBack }: { onBack: () => void }) {
-  const { destination, location, setTrip } = usePlanner();
+  const { destination, location, lastRequest, generating, generateError, generateTrip } = usePlanner();
 
-  const [days, setDays] = useState(3);
-  const [interests, setInterests] = useState<Interest[]>([]);
-  const [pace, setPace] = useState<Pace>("balanced");
-  const [notes, setNotes] = useState("");
-  const [status, setStatus] = useState<"idle" | "generating" | "error">("idle");
+  // começa com as escolhas do último pedido (se houver) — voltar não perde nada
+  const [days, setDays] = useState(lastRequest?.days ?? 3);
+  const [interests, setInterests] = useState<Interest[]>(lastRequest?.interests ?? []);
+  const [pace, setPace] = useState<Pace>(lastRequest?.pace ?? "balanced");
+  const [notes, setNotes] = useState(lastRequest?.notes ?? "");
 
   if (!destination) return null;
 
@@ -27,9 +27,8 @@ export function TripPreferences({ onBack }: { onBack: () => void }) {
     );
   }
 
-  async function generate() {
+    function generate() {
     if (!destination) return;
-    setStatus("generating");
 
     const request: TripRequest = {
       destination,
@@ -39,23 +38,8 @@ export function TripPreferences({ onBack }: { onBack: () => void }) {
       pace,
       notes: notes.trim(),
     };
-
-    try {
-      const res = await fetch("/api/trips/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(request),
-      });
-      if (!res.ok) throw new Error(`Erro ${res.status}`);
-
-      const trip: Trip = await res.json();
-      setTrip(trip); // o painel troca sozinho para a tela do roteiro
-    } catch {
-      setStatus("error");
-    }
+    generateTrip(request);
   }
-
-  const generating = status === "generating";
 
   return (
     <div className="animate-fade-up">
@@ -150,11 +134,16 @@ export function TripPreferences({ onBack }: { onBack: () => void }) {
         </p>
       </Section>
 
-      {status === "error" && (
-        <p className="mt-3 text-sm text-gmap-red">Não conseguimos gerar o roteiro. Tente de novo.</p>
-      )}
 
-      <Button className="mt-4 w-full" onClick={generate} disabled={generating}>
+      {generateError && <p className="mt-3 text-sm text-gmap-red">{generateError}</p>}
+      <p className="mt-4 text-[12px] leading-snug text-ink-faint">
+        O roteiro é criado por IA (Google Gemini) a partir das suas escolhas. Confira horários e
+        funcionamento antes de ir.
+      </p>
+
+
+
+      <Button className="mt-3 w-full" onClick={generate} disabled={generating}>
         {generating ? (
           <>
             <LoaderCircle className="size-4 animate-spin" />
