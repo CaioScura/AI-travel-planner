@@ -1,15 +1,16 @@
 "use client";
 
-import { ArrowLeft, Info, LoaderCircle, MapPinOff, RefreshCw } from "lucide-react";
+import { ArrowLeft, Footprints, Info, LoaderCircle, MapPinOff, RefreshCw } from "lucide-react";
 import { cn } from "@/app/lib/cn";
 import { categories } from "@/app/lib/trip/categories";
 import { sampleTrip } from "@/app/lib/trip/sample-trip";
+import type { RouteLeg } from "@/app/lib/trip/types";
 import { usePlanner } from "./PlannerProvider";
 
 
 //ROTEIRO, abas de dia e lista de paradas
 export function TripView({ onBack }: { onBack: () => void }) {
-  const { trip, selectedDay, setSelectedDay, lastRequest, generating, generateError, generateTrip } = usePlanner();
+  const { trip, selectedDay, setSelectedDay, lastRequest, generating, generateError, generateTrip, dayRoute } = usePlanner();
   if (!trip) return null;
 
   const day = trip.days[selectedDay];
@@ -84,6 +85,20 @@ export function TripView({ onBack }: { onBack: () => void }) {
         {day.title} <span className="font-normal text-ink-faint">· {day.activities.length} paradas</span>
       </p>
 
+
+      {/* situação do cálculo dos caminhos a pé */}
+      {dayRoute.loading && (
+        <p className="mt-1 flex items-center gap-1.5 text-[12px] text-ink-faint">
+          <LoaderCircle className="size-3.5 animate-spin" />
+          Calculando os caminhos a pé…
+        </p>
+      )}
+      {dayRoute.failed && (
+        <p className="mt-1 text-[12px] text-ink-faint">
+          Não deu para calcular os caminhos agora — o mapa mostra linhas retas.
+        </p>
+      )}
+      
       {/* Paradas do dia — key={day.id} refaz a animação ao trocar de dia */}
       <ol key={day.id} className="mt-2">
         {day.activities.map((activity, i) => {
@@ -118,11 +133,49 @@ export function TripView({ onBack }: { onBack: () => void }) {
                   <span className="shrink-0 text-[13px] text-ink-faint tabular-nums">{activity.time}</span>
                 </div>
                 {activity.note && <p className="text-[13px] leading-snug text-ink-soft">{activity.note}</p>}
+                
+                {/* trecho até a PRÓXIMA parada: legs[i] liga a parada i à i+1 */}
+                {!isLast && dayRoute.route?.legs[i] && <LegInfo leg={dayRoute.route.legs[i]} />}
+
               </div>
             </li>
           );
         })}
       </ol>
+
+      
+      <p className="mt-2 text-[11px] text-ink-faint">Caminhos a pé: Valhalla (FOSSGIS) · dados © OpenStreetMap</p>
+
+      
     </div>
   );
+}
+
+
+//trecho a pé até a próxima parada
+function LegInfo({ leg }: { leg: RouteLeg }) {
+  const tooFar = leg.durationMin > 40;
+
+  return (
+    <p className={cn("mt-1.5 flex flex-wrap items-center gap-x-1.5 text-[12px]", tooFar ? "text-amber-700" : "text-ink-faint")}>
+      <Footprints className="size-3.5" />
+      {formatDuration(leg.durationMin)} · {formatDistance(leg.distanceKm)}
+      {tooFar && <span>· longe para ir a pé, considere transporte</span>}
+    </p>
+  );
+}
+
+
+
+function formatDuration(minutes: number) {
+  if (minutes < 60) return `${minutes} min`;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m === 0 ? `${h} h` : `${h} h ${m} min`;
+}
+
+
+function formatDistance(km: number) {
+  if (km < 1) return `${Math.round(km * 1000)} m`;
+  return `${km.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} km`;
 }

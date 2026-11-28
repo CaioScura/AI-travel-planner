@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { requestUserLocation, type UserLocation } from "@/app/lib/geo/user-location";
 import type { Place, Trip, TripRequest } from "@/app/lib/trip/types";
 
+import { useDayRoute, type DayRouteState } from "./useDayRoute";  
 
 //tudo que o mapa e o painel precisam comporatilhar
 type PlannerState = {
@@ -15,6 +16,8 @@ type PlannerState = {
   lastRequest: TripRequest | null; // o último pedido de roteiro
   generating: boolean;
   generateError: string | null;
+
+  dayRoute: DayRouteState;
 
 
   retryLocation: () => void;
@@ -39,6 +42,9 @@ export function PlannerProvider({ children }: { children: ReactNode }) {
   const [lastRequest, setLastRequest] = useState<TripRequest | null>(null);
   const [generating, setGenerating] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
+
+  // caminho a pé do dia aberto: fica aqui para o mapa e o painel usarem o MESMO resultado
+  const dayRoute = useDayRoute(trip?.days[selectedDay]);
 
 
   // Ao abrir a tela, pede a localização uma vez
@@ -102,6 +108,7 @@ export function PlannerProvider({ children }: { children: ReactNode }) {
         lastRequest,
         generating,
         generateError,
+        dayRoute,
         retryLocation,
         setDestination,
         setTrip,

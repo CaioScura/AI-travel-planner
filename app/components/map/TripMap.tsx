@@ -28,7 +28,7 @@ setWorkerUrl("/maplibre-gl-worker.mjs");
 //nao recarrega ao trocar de pagina
 export function TripMap() {
   const mapStyle = useMapStyle();
-  const { location, trip, destination, setDestination, selectedDay } = usePlanner();
+  const { location, trip, destination, setDestination, selectedDay, dayRoute } = usePlanner();
   const picker = useDestinationPicker();
 
   
@@ -112,7 +112,13 @@ export function TripMap() {
         {/* Roteiro: só aparece quando existe um */}
         {day && (
           <>
-            <RouteLine coordinates={day.activities.map((a) => a.coordinates)} />
+
+            {/* caminho pelas ruas; enquanto não chega (ou se falhar), linha reta tracejada */}
+            <RouteLine
+              coordinates={dayRoute.route?.path ?? day.activities.map((a) => a.coordinates)}
+              approximate={!dayRoute.route}
+            />
+            
 
             {day.activities.map((activity, i) => (
               <Marker
