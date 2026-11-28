@@ -30,7 +30,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    return Response.json(await getWalkingRoute(points));
+    return Response.json(await getWalkingRoute(points, request.signal));
   } catch (error) {
     if (error instanceof RoutingError) {
       return Response.json({ error: error.message }, { status: error.status });

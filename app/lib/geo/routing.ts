@@ -19,6 +19,7 @@ export class RoutingError extends Error {
 }
 
 
+
 //decodifica um "encoded polyline"
 //cada coordenada vira poucos caracteres
 export function decodePolyline6(encoded: string): LngLat[] {
@@ -71,12 +72,15 @@ type ValhallaResponse = {
 
 
 /** Caminho a pé passando por todas as paradas, na ordem */
-export async function getWalkingRoute(points: LngLat[]): Promise<DayRoute> {
+export async function getWalkingRoute(points: LngLat[], signal?: AbortSignal): Promise<DayRoute> {
   const key = points.map((p) => p.join(",")).join(";");
   const cached = cache.get(key);
   if (cached) return cached;
 
   await waitForSlot();
+
+  // enquanto esperava a vez, o usuário mudou o dia de novo: nem chama o Valhalla
+  if (signal?.aborted) throw new RoutingError("Pedido cancelado.", 499);
 
   let res: Response;
   try {

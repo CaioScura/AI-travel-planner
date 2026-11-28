@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight, LoaderCircle, LocateFixed, MapPin, MapPinOff, MousePointerClick, Sparkles } from "lucide-react";
+import { ArrowRight, LoaderCircle, LocateFixed, MapPin, MapPinOff, MousePointerClick } from "lucide-react";
 import { DestinationSearch } from "./DestinationSearch";
 import { TripPreferences } from "./TripPreferences";
 import { TripView } from "./TripView";
@@ -9,7 +9,6 @@ import { TripView } from "./TripView";
 import { GlassPanel } from "@/app/components/ui/GlassPanel";
 import { Button } from "@/app/components/ui/Button";
 import { cn } from "@/app/lib/cn";
-import { sampleTrip } from "@/app/lib/trip/sample-trip";
 import { usePlanner } from "./PlannerProvider";
 
 
@@ -46,7 +45,7 @@ export function PlannerPanel() {
 
 //estado inicial, escsolher o destino de viagem
 function ChooseDestination({ onContinue }: { onContinue: () => void }) {
-  const { destination, setTrip } = usePlanner();
+  const { destination } = usePlanner();
 
   return (
     <div className="animate-fade-up">
