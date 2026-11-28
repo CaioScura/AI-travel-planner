@@ -10,7 +10,7 @@ export async function POST(request: Request) {
 
   // 1. limite de pedidos por IP
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "local";
-  if (isRateLimited(ip)) {
+  if (isRateLimited(`generate:${ip}`)) {
     return Response.json({ error: "Muitos pedidos seguidos. Espere um minuto." }, { status: 429 });
   }
 
