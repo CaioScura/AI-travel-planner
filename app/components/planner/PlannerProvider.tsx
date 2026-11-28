@@ -2,9 +2,11 @@
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { requestUserLocation, type UserLocation } from "@/app/lib/geo/user-location";
-import type { Place, Trip, TripRequest } from "@/app/lib/trip/types";
+import type { Activity, Place, PlaceSuggestion, Trip, TripRequest } from "@/app/lib/trip/types";
+import { addStop, moveStop, removeStop } from "@/app/lib/trip/edit";
 
 import { useDayRoute, type DayRouteState } from "./useDayRoute";  
+
 
 //tudo que o mapa e o painel precisam comporatilhar
 type PlannerState = {
@@ -25,6 +27,12 @@ type PlannerState = {
   setTrip: (trip: Trip | null) => void;
   setSelectedDay: (index: number) => void;
   generateTrip: (request: TripRequest) => Promise<void>;
+
+  
+  //edição do dia aberto
+  removeActivity: (id: string) => void;
+  moveActivity: (index: number, direction: -1 | 1) => void;
+  addActivity: (place: PlaceSuggestion) => void;
 
   
 };
@@ -92,6 +100,21 @@ export function PlannerProvider({ children }: { children: ReactNode }) {
   }
 
 
+  //aplica uma mudança nas paradas do dia aberto, criando um roteiro NOVO
+  function editDay(change: (activities: Activity[]) => Activity[]) {
+    setTripState((prev) =>
+      prev && {
+        ...prev,
+        days: prev.days.map((day, i) => (i === selectedDay ? { ...day, activities: change(day.activities) } : day)),
+      },
+    );
+  }
+
+  const removeActivity = (id: string) => editDay((list) => removeStop(list, id));
+  const moveActivity = (index: number, direction: -1 | 1) => editDay((list) => moveStop(list, index, direction));
+  const addActivity = (place: PlaceSuggestion) => editDay((list) => addStop(list, place));
+
+
   // Botão "Tentar de novo"
   function retryLocation() {
     setLocation({ status: "locating" });
@@ -114,6 +137,9 @@ export function PlannerProvider({ children }: { children: ReactNode }) {
         setTrip,
         setSelectedDay,
         generateTrip,
+        removeActivity,
+        moveActivity,
+        addActivity,
       }}
     >
       {children}
