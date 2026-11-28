@@ -1,10 +1,12 @@
-import type { LngLat, Place } from "@/app/lib/trip/types";
+import type { Category, LngLat, Place, PlaceSuggestion } from "@/app/lib/trip/types";
 
 /**
  * Geocodificação com o Photon (OpenStreetMap)
  * Este arquivo roda só no SERVIDOR (é chamado pela rota /api/geocode/...).
  */
 const PHOTON_URL = process.env.GEOCODER_URL ?? "https://photon.komoot.io";
+
+const NEARBY_BOX = 1;
 
 
 /** resposta do photon */
@@ -18,6 +20,10 @@ type PhotonFeature = {
     country?: string;
     countrycode?: string;
     type?: string; //cidade, estado, pais
+    street?: string;
+    district?: string;
+    osm_key?: string;
+    osm_value?: string;
   };
 };
 
@@ -118,20 +124,57 @@ export async function searchPlaces(query: string): Promise<Place[]> {
 }
 
 
-//acha um lugar específico perto do destino
-//bbox = quadrado de uns 110 km em volta do destino
 export async function findPlace(query: string, near: LngLat): Promise<LngLat | null> {
-  const [lng, lat] = near;
-  const box = 1; // graus para cada lado (~110 km)
+  const [first] = await photon("/api", { q: query, lang: "en", limit: "1", ...nearParams(near) });
+  return first ? first.geometry.coordinates : null;
+}
 
-  const [first] = await photon("/api", {
-    q: query,
-    lang: "en",
-    limit: "1",
+
+//parâmetros que limitam a busca à região: prioriza o centro e corta o que estiver fora do quadrado
+function nearParams([lng, lat]: LngLat) {
+  const box = NEARBY_BOX;
+  return {
     lon: String(lng),
     lat: String(lat),
     bbox: [lng - box, lat - box, lng + box, lat + box].join(","),
-  });
-
-  return first ? first.geometry.coordinates : null;
+  };
 }
+
+
+//etiqueta do OpenStreetMap → nossa categoria
+const FOOD = ["restaurant", "fast_food", "food_court", "bar", "pub", "biergarten", "ice_cream"];
+const CAFE = ["cafe", "bakery", "confectionery", "coffee", "tea"];
+const LODGING = ["hotel", "hostel", "guest_house", "motel", "apartment"];
+
+function categoryFromOsm(key?: string, value = ""): Category {
+  if (CAFE.includes(value)) return "cafe";
+  if (key === "amenity" && FOOD.includes(value)) return "food";
+  if (key === "tourism" && LODGING.includes(value)) return "lodging";
+  if (key === "railway" || key === "public_transport" || key === "aeroway" || value === "bus_station") return "transport";
+  return "attraction"; // museu, templo, parque, mirante...
+}
+
+
+//busca lugares (templos, restaurantes, cafés...) perto do roteiro: "Adicionar parada"
+export async function searchNearby(query: string, near: LngLat): Promise<PlaceSuggestion[]> {
+  const features = await photon("/api", { q: query, lang: "en", limit: "8", ...nearParams(near) });
+
+  return features
+    .filter((f) => f.properties.name) // sem nome não serve como parada
+    .map((f) => {
+      const p = f.properties;
+      return {
+        name: p.name!,
+        address: [p.street, p.district ?? p.city].filter(Boolean).join(", ") || undefined,
+        category: categoryFromOsm(p.osm_key, p.osm_value),
+        coordinates: f.geometry.coordinates,
+      };
+    });
+}
+
+
+// //centro do retângulo que contém todos os pontos
+// export function getCenter(points: LngLat[]): LngLat {
+//   const [[west, south], [east, north]] = getBounds(points);
+//   return [(west + east) / 2, (south + north) / 2];
+// }

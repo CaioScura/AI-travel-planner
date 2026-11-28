@@ -11,3 +11,10 @@ export function getBounds(points: LngLat[]): [LngLat, LngLat] {
     [Math.max(...lngs), Math.max(...lats)],
   ];
 }
+
+
+//centro do retângulo que contém todos os pontos
+export function getCenter(points: LngLat[]): LngLat {
+  const [[west, south], [east, north]] = getBounds(points);
+  return [(west + east) / 2, (south + north) / 2];
+}

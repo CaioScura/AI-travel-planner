@@ -58,7 +58,6 @@ export type TripRequest = {
 };
 
 
-
 //VALHALLA: motor de rotas para calcular os destinos andando
 /** Um trecho entre duas paradas seguidas */
 export type RouteLeg = {
@@ -70,4 +69,13 @@ export type RouteLeg = {
 export type DayRoute = {
   path: LngLat[];
   legs: RouteLeg[];
+};
+
+
+//lugar achado na busca "Adicionar parada"
+export type PlaceSuggestion = {
+  name: string;
+  address?: string;
+  category: Category;
+  coordinates: LngLat;
 };
