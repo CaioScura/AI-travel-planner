@@ -1,16 +1,23 @@
 "use client";
 
-import { ArrowLeft, Footprints, Info, LoaderCircle, MapPinOff, RefreshCw } from "lucide-react";
+import { useState } from "react";
+import { ArrowLeft, Check, Footprints, Info, LoaderCircle, MapPinOff, Pencil, RefreshCw } from "lucide-react";
 import { cn } from "@/app/lib/cn";
 import { categories } from "@/app/lib/trip/categories";
 import { sampleTrip } from "@/app/lib/trip/sample-trip";
+import { getCenter } from "@/app/lib/geo/bounds";
 import type { RouteLeg } from "@/app/lib/trip/types";
 import { usePlanner } from "./PlannerProvider";
+
+import { ActivityControls } from "./ActivityControls";
+import { AddActivitySearch } from "./AddActivitySearch";
 
 
 //ROTEIRO, abas de dia e lista de paradas
 export function TripView({ onBack }: { onBack: () => void }) {
   const { trip, selectedDay, setSelectedDay, lastRequest, generating, generateError, generateTrip, dayRoute } = usePlanner();
+    const [editing, setEditing] = useState(false); //modo edição
+  
   if (!trip) return null;
 
   const day = trip.days[selectedDay];
@@ -81,9 +88,19 @@ export function TripView({ onBack }: { onBack: () => void }) {
         ))}
       </div>
 
-      <p className="mt-3 text-sm font-semibold">
-        {day.title} <span className="font-normal text-ink-faint">· {day.activities.length} paradas</span>
-      </p>
+            <div className="mt-3 flex items-center justify-between gap-2">
+        <p className="text-sm font-semibold">
+          {day.title} <span className="font-normal text-ink-faint">· {day.activities.length} paradas</span>
+        </p>
+        <button
+          onClick={() => setEditing(!editing)}
+          aria-pressed={editing}
+          className="flex shrink-0 items-center gap-1 text-sm font-medium text-gmap-blue hover:underline"
+        >
+          {editing ? <Check className="size-4" /> : <Pencil className="size-3.5" />}
+          {editing ? "Concluir" : "Editar"}
+        </button>
+      </div>
 
 
       {/* situação do cálculo dos caminhos a pé */}
@@ -136,12 +153,18 @@ export function TripView({ onBack }: { onBack: () => void }) {
                 
                 {/* trecho até a PRÓXIMA parada: legs[i] liga a parada i à i+1 */}
                 {!isLast && dayRoute.route?.legs[i] && <LegInfo leg={dayRoute.route.legs[i]} />}
+                
+                {editing && <ActivityControls id={activity.id} index={i} total={day.activities.length} />}
 
               </div>
             </li>
           );
         })}
       </ol>
+
+      
+      {/* busca perto do centro das paradas do dia */}
+      {editing && <AddActivitySearch near={getCenter(day.activities.map((a) => a.coordinates))} />}
 
       
       <p className="mt-2 text-[11px] text-ink-faint">Caminhos a pé: Valhalla (FOSSGIS) · dados © OpenStreetMap</p>
