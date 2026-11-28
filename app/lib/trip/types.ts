@@ -41,8 +41,6 @@ export type Place = {
 };
 
 
-
-
 //interesse que o usuario pode escolher
 export type Interest = "food" | "culture" | "nature" | "nightlife" | "shopping" | "history";
 
@@ -57,4 +55,19 @@ export type TripRequest = {
   interests: Interest[];
   pace: Pace;
   notes: string; //conte o que você quer fazer
+};
+
+
+
+//VALHALLA: motor de rotas para calcular os destinos andando
+/** Um trecho entre duas paradas seguidas */
+export type RouteLeg = {
+  durationMin: number; // tempo a pé, em minutos
+  distanceKm: number;
+};
+
+/** O caminho a pé de um dia inteiro, pelas ruas */
+export type DayRoute = {
+  path: LngLat[];
+  legs: RouteLeg[];
 };
