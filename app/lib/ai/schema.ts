@@ -25,5 +25,22 @@ export const aiTripSchema = z.object({
 
 export type AiTrip = z.infer<typeof aiTripSchema>;
 
-/** O mesmo formato em JSON Schema — é o que vai para o Gemini */
-export const aiTripJsonSchema = z.toJSONSchema(aiTripSchema);
+// Regras que o Gemini não aceita no schema: elas multiplicam as combinações que ele
+// precisa controlar ao gerar a resposta (ex.: até 14 dias × até 8 paradas cada).
+// Tiramos do schema enviado à IA — mas o Zod continua conferindo tudo na resposta.
+const RULES_ONLY_FOR_ZOD = ["minItems", "maxItems", "minLength", "maxLength", "pattern"];
+
+/** Copia o schema removendo (em todos os níveis) as regras da lista acima */
+function simplifyForGemini(node: unknown): unknown {
+  if (Array.isArray(node)) return node.map(simplifyForGemini);
+  if (typeof node !== "object" || node === null) return node;
+
+  return Object.fromEntries(
+    Object.entries(node)
+      .filter(([key]) => !RULES_ONLY_FOR_ZOD.includes(key))
+      .map(([key, value]) => [key, simplifyForGemini(value)]),
+  );
+}
+
+/** O formato em JSON Schema, simplificado — é o que vai para o Gemini */
+export const aiTripJsonSchema = simplifyForGemini(z.toJSONSchema(aiTripSchema));

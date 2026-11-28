@@ -1,20 +1,21 @@
-import { ApiError, GoogleGenAI } from "@google/genai";
+import { ApiError, GoogleGenAI, ThinkingLevel } from "@google/genai";
 import type { TripRequest } from "@/app/lib/trip/types";
 import { aiTripJsonSchema, aiTripSchema, type AiTrip } from "./schema";
 import { buildPrompt, SYSTEM_INSTRUCTION } from "./prompt";
 
 //conversa com o GEMINI: modelo, tempo limite, etc
 
-//modelo principal e reserva (mais leve, costuma estar menos sobrecarregado)
+//modelo principal e reserva (mais leve e mais rápido)
+//thinking = quanto a IA "pensa" antes de responder: menos pensamento = resposta mais rápida
 const MODELS = [
-  process.env.GEMINI_MODEL ?? "gemini-3.8-flash",
-  process.env.GEMINI_FALLBACK_MODEL ?? "gemini-3.5-flash-lite",
+  { name: process.env.GEMINI_MODEL ?? "gemini-3.8-flash", thinking: ThinkingLevel.LOW },
+  { name: process.env.GEMINI_FALLBACK_MODEL ?? "gemini-3.5-flash-lite", thinking: ThinkingLevel.MINIMAL },
 ];
-const TIMEOUT_MS = 45_000;
 
+const ATTEMPT_TIMEOUT_MS = 30_000; // tempo máximo de CADA tentativa (não da soma delas)
+const ATTEMPTS_PER_MODEL = 2; // a original + 1 nova tentativa
 
 const TEMPORARY_STATUS = [500, 502, 503, 504];
-
 
 /** Erro com uma mensagem amigável e o status HTTP que a rota deve devolver */
 export class AiError extends Error {
@@ -26,21 +27,31 @@ export class AiError extends Error {
   }
 }
 
-function isTemporary(error: unknown) {
+/** Google sobrecarregado (5xx) */
+function isOverloaded(error: unknown) {
   return error instanceof ApiError && TEMPORARY_STATUS.includes(error.status);
 }
 
+/** A tentativa passou do tempo limite e foi cancelada */
+function isTimeout(error: unknown) {
+  return error instanceof Error && (error.name === "AbortError" || error.name === "TimeoutError");
+}
+
 /** Uma chamada ao Gemini -> roteiro já conferido pelo Zod (ou null se veio fora do formato) */
-async function askGemini(ai: GoogleGenAI, model: string, request: TripRequest): Promise<AiTrip | null> {
+async function askGemini(
+  ai: GoogleGenAI,
+  model: (typeof MODELS)[number],
+  request: TripRequest,
+): Promise<AiTrip | null> {
   const response = await ai.models.generateContent({
-    model,
+    model: model.name,
     contents: buildPrompt(request),
     config: {
       systemInstruction: SYSTEM_INSTRUCTION,
       responseMimeType: "application/json",
       responseJsonSchema: aiTripJsonSchema,
       temperature: 0.7, //de 0 a 1, quanto maior, mais criativa a IA fica para montar o roteiro
-      abortSignal: AbortSignal.timeout(TIMEOUT_MS),
+      thinkingConfig: { thinkingLevel: model.thinking },
     },
   });
 
@@ -61,12 +72,11 @@ function toAiError(error: unknown): AiError {
   if (error instanceof ApiError && error.status === 429) {
     return new AiError("Limite gratuito da IA atingido. Tente de novo mais tarde.", 429);
   }
-  // 503 e cia. = servidores do Google sobrecarregados (mesmo depois das novas tentativas)
-  if (isTemporary(error)) {
+  if (isOverloaded(error)) {
     return new AiError("A IA está sobrecarregada no momento. Tente de novo em alguns minutos.", 503);
   }
-  if (error instanceof Error && error.name === "TimeoutError") {
-    return new AiError("A IA demorou demais para responder. Tente de novo.", 504);
+  if (isTimeout(error)) {
+    return new AiError("A IA demorou demais para responder. Tente de novo em instantes.", 504);
   }
 
   console.error("[ai] erro ao chamar o Gemini:", error);
@@ -83,30 +93,37 @@ export async function generateItinerary(request: TripRequest): Promise<AiTrip> {
   const ai = new GoogleGenAI({
     apiKey,
     httpOptions: {
-      // a própria biblioteca tenta de novo quando o Google responde com erro temporário:
-      // espera ~1 s, depois ~2 s... (backoff exponencial com um pouco de aleatoriedade)
-      retryOptions: { attempts: 3, initialDelay: 1, httpStatusCodes: TEMPORARY_STATUS },
+      timeout: ATTEMPT_TIMEOUT_MS, // vale para cada tentativa separadamente
+      // a biblioteca tenta de novo sozinha quando o Google responde com erro temporário
+      // ou quando a tentativa estoura o tempo (espera ~1 s entre elas)
+      retryOptions: { attempts: ATTEMPTS_PER_MODEL, initialDelay: 1, httpStatusCodes: TEMPORARY_STATUS },
     },
   });
 
   let lastError: unknown;
 
   for (const model of MODELS) {
+    const startedAt = Date.now();
     try {
-      // até 2 tentativas se a resposta vier fora do formato
+      // até 2 pedidos se a resposta vier fora do formato
       for (let attempt = 1; attempt <= 2; attempt++) {
         const trip = await askGemini(ai, model, request);
-        if (trip) return trip;
+        if (trip) {
+          console.info(`[ai] ${model.name} respondeu em ${Date.now() - startedAt} ms`);
+          return trip;
+        }
       }
       throw new AiError("A IA respondeu num formato inesperado. Tente de novo.", 502);
     } catch (error) {
       lastError = error;
-      // sobrecarregado mesmo depois das novas tentativas? tenta o modelo reserva
-      if (isTemporary(error)) {
-        console.warn(`[ai] ${model} sobrecarregado mesmo após novas tentativas`);
+      const seconds = Math.round((Date.now() - startedAt) / 1000);
+
+      // sobrecarregado ou lento demais? o modelo reserva (mais leve) pode resolver
+      if (isOverloaded(error) || isTimeout(error)) {
+        console.warn(`[ai] ${model.name} falhou após ${seconds} s (${isTimeout(error) ? "tempo esgotado" : "sobrecarga"})`);
         continue;
       }
-      break; // outros erros (cota, chave, timeout...) não melhoram trocando de modelo
+      break; // outros erros (cota, chave...) não melhoram trocando de modelo
     }
   }
 

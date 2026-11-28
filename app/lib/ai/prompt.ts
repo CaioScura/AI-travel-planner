@@ -11,6 +11,7 @@ Monte roteiros realistas, com lugares que EXISTEM de verdade e estão abertos ao
 Regras:
 - Agrupe as paradas de cada dia por região, para a pessoa andar pouco entre elas.
 - Ordene as paradas na ordem da visita, com horários realistas (inclua almoço e jantar quando fizer sentido).
+- Cada dia tem de 1 a 8 paradas. Horários no formato HH:MM (ex.: 09:30).
 - Use as categorias: attraction (passeios, museus, templos, parques), food (refeições), cafe, lodging, transport.
 - Em "searchQuery", escreva só o nome oficial do lugar como aparece em mapas (em inglês ou no idioma local), sem endereço nem descrição.
 - Escreva "name", "note" e "title" em português do Brasil.
